@@ -1,3 +1,4 @@
+import { data } from "react-router-dom";
 import apiClient from "./client";
 
 // Minimal typing for the Plaid Link global loaded via the script tag in index.html.
@@ -21,6 +22,15 @@ export async function itemPublicTokenExchange(
   publicToken: string,
 ): Promise<void> {
   await apiClient.post("/accounts/plaid/exchange", { publicToken });
+}
+
+export async function getPlaidAccounts(): Promise<void> {
+  try {
+    const { data } = await apiClient.get("/accounts/plaid/accounts");
+    console.log("Plaid accounts:", data);
+  } catch (err) {
+    console.error("Failed to fetch Plaid accounts:", err);
+  }
 }
 
 /**
