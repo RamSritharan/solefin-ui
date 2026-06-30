@@ -54,6 +54,12 @@ export async function connectBank(onLinked?: () => void): Promise<void> {
         } catch (err) {
           console.error("Failed to exchange public token:", err);
         }
+
+        try {
+          await getPlaidAccounts();
+        } catch (err) {
+          console.error("Failed to fetch Plaid accounts:", err);
+        }
       },
       onExit: (err) => {
         if (err) console.error("Plaid Link exited with error:", err);

@@ -10,7 +10,8 @@ export interface Account {
   id: string;
   userId: string;
   name: string;
-  type: 'checking' | 'savings' | 'credit_card' | 'cash';
+  type: string;
+  subtype: string | null;
   balance: number;
   currency: string;
 }
@@ -18,7 +19,7 @@ export interface Account {
 export interface Category {
   id: string;
   name: string;
-  type: 'income' | 'expense';
+  type: "income" | "expense";
   scheduleCLine?: string;
   isCustom: boolean;
   userId?: string;
@@ -29,7 +30,7 @@ export interface Transaction {
   accountId: string;
   categoryId: string;
   amount: number;
-  type: 'income' | 'expense';
+  type: "income" | "expense";
   date: string;
   description: string;
   notes?: string;
@@ -50,7 +51,7 @@ export interface Invoice {
   clientName: string;
   clientEmail: string;
   amount: number;
-  status: 'draft' | 'sent' | 'viewed' | 'paid' | 'overdue';
+  status: "draft" | "sent" | "viewed" | "paid" | "overdue";
   dueDate: string;
   items: InvoiceItem[];
   createdAt: string;

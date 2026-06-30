@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { FiPlus, FiEdit2, FiTrash2, FiX } from "react-icons/fi";
 import { Account } from "../types";
 import { connectBank } from "../api/plaid";
+import { getAccounts } from "../api/accounts";
 
 const accountSchema = Yup.object().shape({
   name: Yup.string().required("Account name is required"),
@@ -15,39 +16,47 @@ const accountSchema = Yup.object().shape({
 });
 
 const initialAccounts: Account[] = [
-  {
-    id: "1",
-    userId: "u1",
-    name: "Business Checking",
-    type: "checking",
-    balance: 15420.5,
-    currency: "USD",
-  },
-  {
-    id: "2",
-    userId: "u1",
-    name: "Business Savings",
-    type: "savings",
-    balance: 32000.0,
-    currency: "USD",
-  },
-  {
-    id: "3",
-    userId: "u1",
-    name: "Business Credit Card",
-    type: "credit_card",
-    balance: -2340.75,
-    currency: "USD",
-  },
-  {
-    id: "4",
-    userId: "u1",
-    name: "Petty Cash",
-    type: "cash",
-    balance: 500.0,
-    currency: "USD",
-  },
+  // {
+  //   id: "1",
+  //   userId: "u1",
+  //   name: "Business Checking",
+  //   type: "checking",
+  //   balance: 15420.5,
+  //   currency: "USD",
+  // },
+  // {
+  //   id: "2",
+  //   userId: "u1",
+  //   name: "Business Savings",
+  //   type: "savings",
+  //   balance: 32000.0,
+  //   currency: "USD",
+  // },
+  // {
+  //   id: "3",
+  //   userId: "u1",
+  //   name: "Business Credit Card",
+  //   type: "credit_card",
+  //   balance: -2340.75,
+  //   currency: "USD",
+  // },
+  // {
+  //   id: "4",
+  //   userId: "u1",
+  //   name: "Petty Cash",
+  //   type: "cash",
+  //   balance: 500.0,
+  //   currency: "USD",
+  // },
 ];
+
+// The Add/Edit form collects these fields; they map onto the Account shape.
+type AccountFormValues = {
+  name: string;
+  type: string;
+  balance: number;
+  currency: string;
+};
 
 const typeLabels: Record<string, string> = {
   checking: "Checking",
@@ -61,6 +70,22 @@ const AccountsPage: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
 
+  const handleData = async () => {
+    try {
+      const res = await getAccounts();
+      setAccounts(res);
+      console.log("Fetched accounts:", res);
+    } catch (err) {
+      console.error("Failed to connect bank:", err);
+    }
+  };
+
+  // Runs once after the first render to load the user's accounts.
+  useEffect(() => {
+    handleData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleDelete = (id: string) => {
     if (window.confirm("Are you sure you want to delete this account?")) {
       setAccounts(accounts.filter((a) => a.id !== id));
@@ -72,18 +97,30 @@ const AccountsPage: React.FC = () => {
     setShowForm(true);
   };
 
-  const handleSubmit = (values: Omit<Account, "id" | "userId">) => {
+  const handleSubmit = (values: AccountFormValues) => {
     if (editingAccount) {
       setAccounts(
         accounts.map((a) =>
-          a.id === editingAccount.id ? { ...a, ...values } : a,
+          a.id === editingAccount.id
+            ? {
+                ...a,
+                name: values.name,
+                type: values.type,
+                balance: values.balance,
+                currency: values.currency,
+              }
+            : a,
         ),
       );
     } else {
       const newAccount: Account = {
-        ...values,
         id: Date.now().toString(),
         userId: "u1",
+        name: values.name,
+        type: values.type,
+        subtype: null,
+        balance: values.balance,
+        currency: values.currency,
       };
       setAccounts([...accounts, newAccount]);
     }
@@ -131,12 +168,12 @@ const AccountsPage: React.FC = () => {
             initialValues={{
               name: editingAccount?.name || "",
               type: editingAccount?.type || "checking",
-              balance: editingAccount?.balance || 0,
+              balance: Number(editingAccount?.balance) || 0,
               currency: editingAccount?.currency || "USD",
             }}
             validationSchema={accountSchema}
             onSubmit={(values) => {
-              handleSubmit(values as Omit<Account, "id" | "userId">);
+              handleSubmit(values);
             }}
             enableReinitialize
           >
@@ -214,42 +251,47 @@ const AccountsPage: React.FC = () => {
       )}
 
       <div className="accounts-grid">
-        {accounts.map((account) => (
-          <div key={account.id} className="card account-card">
-            <div className="account-card-header">
-              <span className={`account-type-badge badge-${account.type}`}>
-                {typeLabels[account.type]}
-              </span>
-              <div className="account-actions">
-                <button
-                  className="btn-icon"
-                  onClick={() => handleEdit(account)}
-                  aria-label="Edit"
-                >
-                  <FiEdit2 size={16} />
-                </button>
-                <button
-                  className="btn-icon btn-icon-danger"
-                  onClick={() => handleDelete(account.id)}
-                  aria-label="Delete"
-                >
-                  <FiTrash2 size={16} />
-                </button>
+        {accounts.map((account) => {
+          const balance = Number(account.balance) || 0;
+          return (
+            <div key={account.id} className="card account-card">
+              <div className="account-card-header">
+                <span className={`account-type-badge badge-${account.type}`}>
+                  {typeLabels[account.subtype ?? ""] ??
+                    account.subtype ??
+                    account.type}
+                </span>
+                <div className="account-actions">
+                  <button
+                    className="btn-icon"
+                    onClick={() => handleEdit(account)}
+                    aria-label="Edit"
+                  >
+                    <FiEdit2 size={16} />
+                  </button>
+                  <button
+                    className="btn-icon btn-icon-danger"
+                    onClick={() => handleDelete(account.id)}
+                    aria-label="Delete"
+                  >
+                    <FiTrash2 size={16} />
+                  </button>
+                </div>
               </div>
+              <h3 className="account-name">{account.name}</h3>
+              <span
+                className={`account-balance ${balance < 0 ? "amount-expense" : "amount-income"}`}
+              >
+                $
+                {Math.abs(balance).toLocaleString("en-US", {
+                  minimumFractionDigits: 2,
+                })}
+                {balance < 0 && " (owed)"}
+              </span>
+              <span className="account-currency">{account.currency ?? ""}</span>
             </div>
-            <h3 className="account-name">{account.name}</h3>
-            <span
-              className={`account-balance ${account.balance < 0 ? "amount-expense" : "amount-income"}`}
-            >
-              $
-              {Math.abs(account.balance).toLocaleString("en-US", {
-                minimumFractionDigits: 2,
-              })}
-              {account.balance < 0 && " (owed)"}
-            </span>
-            <span className="account-currency">{account.currency}</span>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
