@@ -1,8 +1,8 @@
 /* ===== CSS Variables ===== */
 :root {
-  --primary: #1B4F72;
-  --primary-light: #2874a6;
-  --accent: #85C1E9;
+  --primary: #14532d;
+  --primary-light: #166534;
+  --accent: #4ade80;
   --success: #27AE60;
   --danger: #E74C3C;
   --warning: #F39C12;
@@ -186,12 +186,12 @@
 }
 
 .sidebar-link-active {
-  background: #e0edf6;
+  background: #dcfce7;
   color: var(--primary);
 }
 
 .sidebar-link-active:hover {
-  background: #d0e2f0;
+  background: #bbf7d0;
 }
 
 /* ===== Page Styles ===== */
@@ -526,7 +526,7 @@
 .form-control:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(27, 79, 114, 0.15);
+  box-shadow: 0 0 0 3px rgba(20, 83, 45, 0.15);
 }
 
 .form-control::placeholder {
@@ -599,7 +599,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--primary) 0%, #2e86c1 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, #16a34a 100%);
   padding: 1rem;
 }
 
@@ -754,7 +754,7 @@
   border-color: var(--primary);
   color: var(--primary);
   box-shadow: var(--shadow-md);
-  background: #f0f6fc;
+  background: #f0fdf4;
 }
 
 /* ===== Invoice Form ===== */
